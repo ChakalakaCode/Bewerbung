@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interaktive Bewerbungsmappe - Mutlu Arabul</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; overflow-x: hidden; font-family: 'Inter', sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .project-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .project-card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); }
+    .parallax-bg { position: absolute; width: 100%; height: 120%; z-index: -1; }
+    .svg-icon { fill: #3B82F6; transition: transform 0.3s ease; }
+    .svg-icon:hover { transform: scale(1.3); }
+    .process-node { transition: all 0.3s ease; cursor: pointer; }
+    .process-node:hover { transform: scale(1.1); }
+    .section { position: relative; overflow: hidden; }
+    .nav-link { position: relative; }
+    .nav-link::after { 
+      content: ''; position: absolute; width: 0; height: 2px; bottom: -2px; left: 0; 
+      background-color: #3B82F6; transition: width 0.3s ease; 
+    }
+    .nav-link:hover::after { width: 100%; }
+    .timeline-item { position: relative; padding-left: 40px; }
+    .timeline-item::before {
+      content: ''; position: absolute; left: 15px; top: 0; height: 100%; width: 4px; background: #3B82F6;
+    }
+    .timeline-item::after {
+      content: ''; position: absolute; left: 10px; top: 10px; width: 14px; height: 14px; border-radius: 50%; background: #3B82F6; border: 2px solid #fff;
+    }
+    .filter-button { transition: all 0.3s ease; }
+    .filter-button:hover { transform: scale(1.05); }
+    .skill-card { 
+      transition: all 0.3s ease; 
+      cursor: pointer; 
+      transform-style: preserve-3d; 
+      perspective: 1000px; 
+    }
+    .skill-card:hover { 
+      transform: scale(1.1) rotateY(10deg); 
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4); 
+    }
+    .skill-icon { transition: transform 0.3s ease; }
+    .skill-card:hover .skill-icon { transform: scale(1.2); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useEffect, useRef, useState } = React;
+
+    // Navigation
+    const NavBar = () => {
+      const navRef = useRef(null);
+      useEffect(() => {
+        gsap.from(navRef.current.children, {
+          opacity: 0,
+          y: -20,
+          duration: 0.6,
+          stagger: 0.1,
+          delay: 0.3,
+          ease: "power3.out",
+        });
+      }, []);
+      return (
+        <nav ref={navRef} className="fixed top-0 w-full bg-gray-900 bg-opacity-95 shadow-lg z-30">
+          <ul className="flex justify-center space-x-8 py-6 text-lg font-semibold text-white">
+            {["home", "about", "resume", "projects", "skills", "process"].map((item) => (
+              <li key={item}>
+                <a
+                  href={`#${item}`}
+                  className="nav-link hover:text-blue-400 transition-colors capitalize"
+                  aria-label={`Navigiere zu ${item.replace("-", " ")}`}
+                >
+                  {item.replace("-", " ")}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      );
+    };
+
+    // Hero-Section
+    const Hero = () => {
+      const titleRef = useRef(null);
+      const subtitleRef = useRef(null);
+      const buttonRef = useRef(null);
+      const bgRef = useRef(null);
+      useEffect(() => {
+        gsap.timeline()
+          .from(titleRef.current, { opacity: 0, y: 80, duration: 1.2, ease: "power4.out" })
+          .from(subtitleRef.current, { opacity: 0, y: 60, duration: 1, ease: "power4.out" }, "-=0.6")
+          .from(buttonRef.current, { opacity: 0, scale: 0.8, duration: 0.8, ease: "elastic.out(1, 0.4)" }, "-=0.5");
+        gsap.to(bgRef.current, {
+          y: 150,
+          scrollTrigger: { trigger: bgRef.current, scrub: 1.5, start: "top top", end: "bottom top" },
+        });
+      }, []);
+      return (
+        <section id="home" className="section h-screen flex items-center justify-center flex-col text-center px-4 relative">
+          <div ref={bgRef} className="parallax-bg bg-gradient-to-br from-gray-900 via-blue-900 to-blue-600 opacity-60"></div>
+          <h1 ref={titleRef} className="text-5xl md:text-8xl font-bold mb-6 text-white">Mutlu Arabul</h1>
+          <p ref={subtitleRef} className="text-xl md:text-3xl max-w-3xl mb-10 text-gray-200">
+            Fullstack-Entwickler mit Leidenschaft für innovative, skalierbare Lösungen
+ 
+          </p>
+          <a
+            ref={buttonRef}
+            href="#resume"
+            className="px-12 py-4 bg-blue-600 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors shadow-xl"
+            aria-label="Meine Projekte und meinen Lebenslauf entdecken"
+          >
+            Mein Profil entdecken
+          </a>
+        </section>
+      );
+    };
+
+    // About-Section
+    const About = () => {
+      const sectionRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 80,
+          duration: 1.2,
+          stagger: 0.2,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 75%", ease: "power3.out" },
+        });
+      }, []);
+      return (
+        <section ref={sectionRef} id="about" className="section py-32 px-4 md:px-16 bg-gray-800">
+          <div className="parallax-bg bg-gradient-to-b from-gray-800 to-gray-900 opacity-50"></div>
+          <h2 className="text-5xl font-bold text-center mb-12 text-white">Über mich</h2>
+          <div className="max-w-5xl mx-auto text-lg space-y-6 text-gray-200">
+            <p>
+              Ich habe 11 Semester Wirtschaftsinformatik studiert und habe mich darauf in dem Gebiet Softwareentwicklung spezialisiert. Mit diesem Wissen verbinde ich technisches Know-how mit einem tiefen Verständnis für Geschäftsprozesse. Meine Erfahrung umfasst die Entwicklung von Web-Apps, Mobileapps, Datenanalyse-Tools und skalierbaren Backend-Lösungen.
+            </p>
+            <p>
+              Ich liebe es, in agilen Teams zu arbeiten, um kreative und effiziente Lösungen zu entwickeln. Meine Stärken liegen in der technischen Vielseitigkeit, im strukturierten Denken und in der Leidenschaft für innovative Technologien.
+            </p>
+            <div className="flex justify-center space-x-8 mt-12">
+              <svg className="svg-icon w-16 h-16" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+              <svg className="svg-icon w-16 h-16" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+              </svg>
+              <svg className="svg-icon w-16 h-16" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2L2 22h20L12 2z" />
+              </svg>
+            </div>
+           
+          </div>
+        </section>
+      );
+    };
+
+    // Lebenslauf-Sektion
+    const Resume = () => {
+      const sectionRef = useRef(null);
+      const timelineRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 80,
+          duration: 1.2,
+          stagger: 0.2,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 75%", ease: "power3.out" },
+        });
+        gsap.from(timelineRef.current.children, {
+          opacity: 0,
+          x: -100,
+          duration: 1,
+          stagger: 0.3,
+          scrollTrigger: { trigger: timelineRef.current, start: "top 80%", ease: "power3.out" },
+        });
+      }, []);
+      const resumeItems = [
+        {
+          period: "2024 - heute",
+          title: "Versuch der Selbstständigkeit als Fullstackentwickler",
+          
+          description: "Entwicklung von skalierbaren Web-Applikationen & Mobile-Applikationen",
+        },
+        {
+          period: "2018 - 2024",
+          title: "Wirtschaftsinformatik Bachelor",
+          company: "FH Dortmund",
+        
+        },
+        {
+          period: "2015 - 2017",
+          title: "Fachhochschulreife Medien/Informatik/SAP",
+          company: "Berufskolleg Warendorf",
+       
+        },
+
+      ];
+      return (
+        <section ref={sectionRef} id="resume" className="section py-32 px-4 md:px-16 bg-gray-800">
+          <div className="parallax-bg bg-gradient-to-b from-gray-800 to-gray-900 opacity-50"></div>
+          <h2 className="text-5xl font-bold text-center mb-12 text-white">Lebenslauf</h2>
+          <div ref={timelineRef} className="max-w-4xl mx-auto space-y-8">
+            {resumeItems.map((item, index) => (
+              <div key={index} className="timeline-item">
+                <p className="text-blue-400 font-semibold">{item.period}</p>
+                <h3 className="text-2xl font-semibold text-white">{item.title}</h3>
+                <p className="text-gray-300">{item.company}</p>
+                <p className="text-gray-200">{item.description}</p>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-12">
+            <a
+              href="/path/to/resume.pdf"
+              download
+              className="px-8 py-3 bg-blue-600 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors"
+              aria-label="Lebenslauf als PDF herunterladen"
+            >
+              Lebenslauf herunterladen
+            </a>
+          </div>
+        </section>
+      );
+    };
+
+    // Projektkarte
+    const ProjectCard = ({ title, description, technologies, index, link, github }) => {
+      const cardRef = useRef(null);
+      const mockupRef = useRef(null);
+      useEffect(() => {
+        gsap.from(cardRef.current, {
+          opacity: 0,
+          y: 100,
+          duration: 1,
+          delay: index * 0.15,
+          scrollTrigger: { trigger: cardRef.current, start: "top 80%", ease: "power3.out" },
+        });
+        gsap.to(mockupRef.current, {
+          y: -15,
+          rotation: 2,
+          repeat: -1,
+          yoyo: true,
+          duration: 1.8,
+          ease: "sine.inOut",
+        });
+      }, [index]);
+      return (
+        <a href={link} className="block" aria-label={`Projekt: ${title}`}>
+          <div
+            ref={cardRef}
+            className="project-card bg-gray-700 p-8 rounded-2xl shadow-xl cursor-pointer"
+          >
+            <h3 className="text-3xl font-semibold mb-4 text-white">{title}</h3>
+            <p className="mb-4 text-gray-300">{description}</p>
+            <p className="text-sm text-gray-400 mb-6"><strong>Technologien:</strong> {technologies.join(", ")}</p>
+            <div ref={mockupRef} className="h-64 bg-gray-600 rounded-lg flex items-center justify-center overflow-hidden relative">
+              <svg className="w-32 h-32 text-blue-400" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 3h18v18H3z" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path d="M3 9h18M9 3v18" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </div>
+            <a href={github} className="mt-4 inline-block text-blue-400 hover:text-blue-500" aria-label={`GitHub-Repository für ${title}`}>GitHub</a>
+          </div>
+        </a>
+      );
+    };
+
+    // Projekte-Section mit Filter
+    const Projects = () => {
+      const [filter, setFilter] = useState("all");
+      const projects = [
+        {
+          title: "Steuerapp mit Belegverwaltung",
+          description: "Eine Full-Stack-Webanwendung zur Verwaltung von Aufgaben mit Echtzeit-Updates, Benutzerrollen und Drag-and-Drop-Funktionalität.",
+          technologies: ["React", "Node.js", "MongoDB", "Express.js"],
+          link: "projects/steuerapp.html",
+        
+          category: "Web",
+        },
+        {
+          title: "Echat - Gaming Platform",
+          description: "Ein skalierbarer Online-Shop mit Warenkorb, Zahlungssystemen und Admin-Dashboard für effizientes Bestandsmanagement.",
+          technologies: ["Java", "Spring Boot", "PostgreSQL", "Hibernate"],
+          link: "projects/echat.html",
+         
+          category: "Web",
+        },
+        {
+          title: "SEO-Tool",
+          description: "Eine Desktop-Anwendung zur Visualisierung und Analyse von Unternehmensdaten mit interaktiven Diagrammen und ML-Integration.",
+          technologies: ["Python", "Tkinter", "Pandas", "Matplotlib"],
+          link: "projects/seotool.html",
+         
+          category: "Desktop",
+        },
+      ];
+      const filteredProjects = filter === "all" ? projects : projects.filter(project => project.category === filter);
+      return (
+        <section id="projects" className="section py-32 px-4 md:px-16 bg-gray-800">
+          <div className="parallax-bg bg-gradient-to-b from-gray-800 to-gray-900 opacity-50"></div>
+          <h2 className="text-5xl font-bold text-center mb-12 text-white">Meine Projekte. Bei Nachfrage zeig ich gerne mehr.</h2>
+          <div className="flex justify-center space-x-4 mb-8">
+            <button
+              onClick={() => setFilter("all")}
+              className={`filter-button px-6 py-2 rounded-full text-lg font-semibold ${filter === "all" ? "bg-blue-600" : "bg-gray-600"} hover:bg-blue-700 text-white`}
+              aria-label="Alle Projekte anzeigen"
+            >
+              Alle
+            </button>
+            <button
+              onClick={() => setFilter("Web")}
+              className={`filter-button px-6 py-2 rounded-full text-lg font-semibold ${filter === "Web" ? "bg-blue-600" : "bg-gray-600"} hover:bg-blue-700 text-white`}
+              aria-label="Web-Projekte anzeigen"
+            >
+              Web
+            </button>
+            <button
+              onClick={() => setFilter("Desktop")}
+              className={`filter-button px-6 py-2 rounded-full text-lg font-semibold ${filter === "Desktop" ? "bg-blue-600" : "bg-gray-600"} hover:bg-blue-700 text-white`}
+              aria-label="Desktop-Projekte anzeigen"
+            >
+              Desktop
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+            {filteredProjects.map((project, index) => (
+              <ProjectCard key={project.title} {...project} index={index} />
+            ))}
+          </div>
+        </section>
+      );
+    };
+
+    // Neue Skills-Sektion
+    const Skills = () => {
+      const sectionRef = useRef(null);
+      const skillRefs = useRef([]);
+      const [selectedCategory, setSelectedCategory] = useState("all");
+
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 80,
+          duration: 1.2,
+          stagger: 0.2,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 75%", ease: "power3.out" },
+        });
+        skillRefs.current.forEach((ref, index) => {
+          gsap.from(ref, {
+            opacity: 0,
+            scale: 0.8,
+            duration: 0.8,
+            delay: index * 0.1,
+            scrollTrigger: { trigger: ref, start: "top 85%", ease: "elastic.out(1, 0.5)" },
+          });
+        });
+      }, []);
+
+      const skills = [
+        { name: "React", category: "Frontend", color: "#61DAFB", icon: "M18.7 10.3l-2.1-3.6h-2.2l2.1 3.6-2.1 3.6h2.2l2.1-3.6zM12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 22.5c-5.8 0-10.5-4.7-10.5-10.5S6.2 1.5 12 1.5 22.5 6.2 22.5 12 17.8 22.5 12 22.5z" },
+        { name: "Next.js", category: "Frontend", color: "#000000", icon: "M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm3.8 18.8l-3.8-2.2v-4.4l3.8 2.2v4.4zm-7.6 0v-4.4l3.8 2.2v4.4l-3.8-2.2zM12 10.5L8.2 8.3l3.8-2.2 3.8 2.2L12 10.5z" },
+        { name: "JavaScript", category: "Frontend", color: "#F7DF1E", icon: "M0 0v24h24V0H0zm20.6 3.6H3.4v16.8h17.2V3.6zM7.7 17.5l-2.2-2.2 2.2-2.2 1.5 1.5-0.7 0.7h4.4l-0.7-0.7 1.5-1.5 2.2 2.2-2.2 2.2-1.5-1.5 0.7-0.7h-4.4l0.7 0.7-1.5 1.5z" },
+        { name: "TypeScript", category: "Frontend", color: "#3178C6", icon: "M0 0v24h24V0H0zm19.5 4.5H4.5v15h15v-15zm-2.2 2.2l-5.3 5.3-2.2-2.2-1.5 1.5 3.7 3.7 6.8-6.8-1.5-1.5z" },
+        { name: "Flutter", category: "Frontend", color: "#02569B", icon: "M14.3 2.3L12 4.6l2.3 2.3 2.3-2.3L14.3 2.3zm-2.3 9.2l-2.3 2.3 2.3 2.3 2.3-2.3-2.3-2.3zm0 9.2l-2.3 2.3 2.3 2.3 2.3-2.3-2.3-2.3zM0 0v24h24V0H0z" },
+        { name: "Node.js", category: "Backend", color: "#68A063", icon: "M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm3.8 18.8l-3.8-2.2v-4.4l3.8 2.2v4.4zm-7.6 0v-4.4l3.8 2.2v4.4l-3.8-2.2zM12 10.5L8.2 8.3l3.8-2.2 3.8 2.2L12 10.5z" },
+        { name: "Java", category: "Backend", color: "#5382A1", icon: "M3 3h18v18H3V3zm4.5 13.5h3v-3h3v3h3v-3h-9v3zm0-6h9v-3h-9v3z" },
+        { name: "C++", category: "Backend", color: "#00599C", icon: "M0 0v24h24V0H0zm18.8 18.8h-3.8v-3.8h3.8v3.8zm-7.6 0H7.5v-3.8h3.8v3.8zm0-7.6H7.5V7.5h3.8v3.8zm7.6 0h-3.8V7.5h3.8v3.8z" },
+        { name: "MongoDB", category: "Datenbanken", color: "#47A248", icon: "M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm0-12c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z" },
+        { name: "PostgreSQL", category: "Datenbanken", color: "#336791", icon: "M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm3.8 13.8l-3.8-2.2v-4.4l3.8 2.2v4.4zm-7.6 0v-4.4l3.8 2.2v4.4l-3.8-2.2zM12 10.5L8.2 8.3l3.8-2.2 3.8 2.2L12 10.5z" },
+        { name: "SQL", category: "Datenbanken", color: "#F29111", icon: "M3 3h18v18H3V3zm13.5 13.5h-3v-3h3v3zm-6 0h-3v-3h3v3zm0-6h-3v-3h3v3zm6 0h-3v-3h3v3z" },
+        { name: "Android Studio", category: "Tools/Plattformen", color: "#3DDC84", icon: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" },
+        { name: "Linux", category: "Tools/Plattformen", color: "#FCC624", icon: "M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm0-12c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z" },
+        { name: "Windows", category: "Tools/Plattformen", color: "#0078D4", icon: "M3 3h9v9H3V3zm9 0h9v9h-9V3zm-9 9h9v9H3v-9zm9 0h9v9h-9v-9z" },
+        { name: "Docker", category: "Tools/Plattformen", color: "#2496ED", icon: "M3 3h18v18H3V3zm13.5 13.5h-3v-3h3v3zm-6 0h-3v-3h3v3zm0-6h-3v-3h3v3zm6 0h-3v-3h3v3z" },
+        { name: "AWS", category: "Tools/Plattformen", color: "#FF9900", icon: "M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm3.8 13.8l-3.8-2.2v-4.4l3.8 2.2v4.4zm-7.6 0v-4.4l3.8 2.2v4.4l-3.8-2.2zM12 10.5L8.2 8.3l3.8-2.2 3.8 2.2L12 10.5z" },
+        { name: "Git", category: "Tools/Plattformen", color: "#F05032", icon: "M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm0-12c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z" },
+        { name: "REST API", category: "Backend", color: "#00C4B4", icon: "M3 3h18v18H3V3zm13.5 13.5h-3v-3h3v3zm-6 0h-3v-3h3v3zm0-6h-3v-3h3v3zm6 0h-3v-3h3v3z" },
+      ];
+
+      const filteredSkills = selectedCategory === "all" ? skills : skills.filter(skill => skill.category === selectedCategory);
+
+      return (
+        <section ref={sectionRef} id="skills" className="section py-32 px-4 md:px-16 bg-gray-800">
+          <div className="parallax-bg bg-gradient-to-b from-gray-800 to-gray-900 opacity-50"></div>
+          <h2 className="text-5xl font-bold text-center mb-12 text-white">Technologische Fähigkeiten</h2>
+          <div className="flex justify-center space-x-4 mb-8">
+            {["all", "Frontend", "Backend", "Datenbanken", "Tools/Plattformen"].map(category => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`filter-button px-6 py-2 rounded-full text-lg font-semibold ${selectedCategory === category ? "bg-blue-600" : "bg-gray-600"} hover:bg-blue-700 text-white`}
+                aria-label={`Fähigkeiten der Kategorie ${category} anzeigen`}
+              >
+                {category === "all" ? "Alle" : category}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+            {filteredSkills.map((skill, index) => (
+              <div
+                key={skill.name}
+                ref={el => skillRefs.current[index] = el}
+                className="skill-card bg-gray-700 p-6 rounded-2xl shadow-xl flex flex-col items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${skill.color}22, #1F2937)` }}
+                aria-label={`Fähigkeit: ${skill.name}`}
+              >
+                <svg className="skill-icon w-12 h-12 mb-4" viewBox="0 0 24 24" fill={skill.color} aria-hidden="true">
+                  <path d={skill.icon} />
+                </svg>
+                <h3 className="text-lg font-semibold text-white text-center">{skill.name}</h3>
+                <p className="text-sm text-gray-400">{skill.category}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-lg text-center max-w-4xl mx-auto mt-12 text-gray-200">
+            Umfassende Expertise in Frontend-, Backend-, Datenbank- und DevOps-Technologien, einschließlich React, Node.js, MongoDB, PostgreSQL, Java, C++, Flutter und mehr.
+          </p>
+        </section>
+      );
+    };
+
+    // Prozess-Section
+    const Process = () => {
+      const canvasRef = useRef(null);
+      const sectionRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 100,
+          duration: 1.2,
+          stagger: 0.2,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 75%", ease: "power3.out" },
+        });
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight * 1.1;
+
+        const processSteps = [
+          { name: "Anforderungsanalyse", x: window.innerWidth * 0.1, y: 150, description: "Erfassen und Analyse der Anforderungen", color: "#3B82F6" },
+          { name: "Design", x: window.innerWidth * 0.3, y: 300, description: "Entwurf der Systemarchitektur", color: "#10B981" },
+          { name: "Implementierung", x: window.innerWidth * 0.5, y: 450, description: "Entwicklung des Codes", color: "#F59E0B" },
+          { name: "Testen", x: window.innerWidth * 0.7, y: 600, description: "Qualitätssicherung und Tests", color: "#EF4444" },
+          { name: "Bereitstellung", x: window.innerWidth * 0.85, y: 450, description: "Deployment in Produktion", color: "#8B5CF6" },
+          { name: "Wartung", x: window.innerWidth * 0.95, y: 300, description: "Support und Updates", color: "#EC4899" },
+        ];
+
+        const drawProcess = () => {
+          try {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            processSteps.forEach((step, i) => {
+              if (i < processSteps.length - 1) {
+                ctx.beginPath();
+                ctx.moveTo(step.x, step.y);
+                ctx.lineTo(processSteps[i + 1].x, processSteps[i + 1].y);
+                ctx.strokeStyle = "#60A5FA";
+                ctx.lineWidth = 6;
+                ctx.stroke();
+                const angle = Math.atan2(processSteps[i + 1].y - step.y, processSteps[i + 1].x - step.x);
+                ctx.beginPath();
+                ctx.moveTo(processSteps[i + 1].x - 25 * Math.cos(angle - Math.PI / 6), processSteps[i + 1].y - 25 * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(processSteps[i + 1].x, processSteps[i + 1].y);
+                ctx.lineTo(processSteps[i + 1].x - 25 * Math.cos(angle + Math.PI / 6), processSteps[i + 1].y - 25 * Math.sin(angle + Math.PI / 6));
+                ctx.stroke();
+              }
+            });
+
+            processSteps.forEach(step => {
+              ctx.beginPath();
+              ctx.rect(step.x - 140, step.y - 60, 280, 120);
+              ctx.fillStyle = step.color;
+              ctx.fill();
+              ctx.strokeStyle = "#FFFFFF";
+              ctx.lineWidth = 4;
+              ctx.stroke();
+              ctx.fillStyle = "white";
+              ctx.textAlign = "center";
+              ctx.font = "bold 24px Inter";
+              ctx.fillText(step.name, step.x, step.y - 10);
+              ctx.font = "16px Inter";
+              ctx.fillText(step.description, step.x, step.y + 30);
+              ctx.shadowBlur = 25;
+              ctx.shadowColor = step.color;
+            });
+          } catch (error) {
+            console.error("Fehler in drawProcess:", error);
+          }
+        };
+
+        drawProcess();
+
+        window.addEventListener("resize", () => {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight * 1.1;
+          processSteps.forEach(step => {
+            step.x = window.innerWidth * (step.x / canvas.width);
+          });
+          drawProcess();
+        });
+
+        processSteps.forEach(step => {
+          gsap.to(step, {
+            y: "+=" + 20,
+            repeat: -1,
+            yoyo: true,
+            duration: 2.5,
+            ease: "sine.inOut",
+          });
+        });
+
+        return () => {
+          window.removeEventListener("resize", () => {});
+        };
+      }, []);
+
+      return (
+        <section ref={sectionRef} id="process" className="section py-32 px-4 md:px-16 bg-gray-800">
+          <div className="parallax-bg bg-gradient-to-b from-gray-800 to-gray-900 opacity-50"></div>
+          <h2 className="text-5xl font-bold text-center mb-12 text-white">Softwareentwicklungsprozess</h2>
+          <canvas ref={canvasRef} className="w-full h-[110vh] max-w-7xl mx-auto" aria-label="Interaktive Darstellung meines Softwareentwicklungsprozesses"></canvas>
+          <p className="text-lg text-center max-w-4xl mx-auto mt-8 text-gray-200">
+            Mein strukturierter Ansatz umfasst Anforderungsanalyse, Design, Implementierung, Testen, Bereitstellung und Wartung für qualitativ hochwertige Software.
+          </p>
+        </section>
+      );
+    };
+
+   
+    
+    // Haupt-App
+    const App = () => {
+      useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger);
+      }, []);
+      return (
+        <div className="bg-gray-900 text-white min-h-screen">
+          <NavBar />
+          <Hero />
+          <About />
+          <Resume />
+          <Projects />
+          <Skills />
+          <Process />
+        
+          <footer className="py-12 text-center bg-gray-800">
+       
+            <p className="text-gray-400">© 2025 Mutlu Arabul. Alle Rechte vorbehalten.</p>
+          </footer>
+        </div>
+      );
+    };
+
+    // App rendern
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>

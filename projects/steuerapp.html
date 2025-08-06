@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steuererklärungs- und Belegmanagement-System</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; overflow-x: hidden; }
+    .parallax-bg { position: absolute; width: 100%; height: 100%; z-index: -1; }
+    .section-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .section-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); }
+    .svg-icon { fill: #60A5FA; transition: transform 0.3s ease; }
+    .svg-icon:hover { transform: scale(1.2); }
+    .mockup { transition: transform 0.3s ease; }
+    .mockup:hover { transform: scale(1.02); }
+    .screenshot-placeholder { 
+      background: linear-gradient(135deg, #4B5563 0%, #1F2937 100%);
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+    }
+    .screenshot-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .modal-content {
+      max-width: 90%;
+      max-height: 90%;
+      position: relative;
+    }
+    .modal-content img {
+      width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+    }
+    .modal-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .modal-nav.prev { left: 1rem; }
+    .modal-nav.next { right: 1rem; }
+    .modal-close {
+      position: absolute;
+      top: -2rem;
+      right: -2rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body className="bg-gray-900 text-white font-sans">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useEffect, useRef, useState } = React;
+
+    // Navigation
+    const NavBar = () => {
+      const navRef = useRef(null);
+      useEffect(() => {
+        gsap.from(navRef.current.children, {
+          opacity: 0,
+          x: -50,
+          duration: 0.6,
+          stagger: 0.2,
+          ease: "power2.out",
+        });
+      }, []);
+      return (
+        <nav ref={navRef} className="fixed top-0 w-full bg-gray-900 bg-opacity-95 shadow-xl z-20">
+          <ul className="flex justify-center space-x-10 py-5 text-lg font-semibold">
+            <li>
+              <a href="../bewerbung.html" className="hover:text-blue-400 transition-colors">
+                Zurück zur Hauptseite
+              </a>
+            </li>
+          </ul>
+        </nav>
+      );
+    };
+
+    // Header mit Parallax-Effekt
+    const Header = () => {
+      const bgRef = useRef(null);
+      const titleRef = useRef(null);
+      const subtitleRef = useRef(null);
+      useEffect(() => {
+        gsap.timeline()
+          .from(titleRef.current, { opacity: 0, y: 60, duration: 1, ease: "power3.out" })
+          .from(subtitleRef.current, { opacity: 0, y: 60, duration: 1, ease: "power3.out" }, "-=0.5");
+        gsap.to(bgRef.current, {
+          y: 100,
+          scrollTrigger: { trigger: bgRef.current, scrub: true, start: "top top", end: "bottom top" },
+        });
+      }, []);
+      return (
+        <section className="relative h-96 flex items-center justify-center flex-col text-center px-4">
+          <div ref={bgRef} className="parallax-bg bg-gradient-to-b from-gray-900 to-blue-900 opacity-70"></div>
+          <h1 ref={titleRef} className="text-5xl md:text-6xl font-bold mb-4">
+            Steuererklärungs- und Belegmanagement-System
+          </h1>
+          <p ref={subtitleRef} className="text-xl md:text-2xl max-w-3xl">
+            Eine innovative Webanwendung zur effizienten Verwaltung von Steuererklärungen und Belegen mit automatischer Texterkennung.
+          </p>
+        </section>
+      );
+    };
+
+    // Plattform-Verfügbarkeit
+    const Platforms = () => {
+      const sectionRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 50,
+          duration: 1,
+          stagger: 0.2,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", ease: "power2.out" },
+        });
+      }, []);
+      return (
+        <section ref={sectionRef} className="py-12 px-4 md:px-16 bg-gray-800">
+          <div className="max-w-5xl mx-auto text-center space-y-8">
+            <h2 className="text-3xl font-bold">Verfügbar auf allen Plattformen</h2>
+            <div className="flex justify-center space-x-12">
+              {[
+                {
+                  name: "Android",
+                  icon: (
+                    <svg className="svg-icon w-12 h-12" viewBox="0 0 24 24">
+                      <path d="M1.5 6.5L3 0h3l1.5 6.5h-6zm16.5 0L21 0h3l1.5 6.5h-6zM6 7l2.5 7h7L18 7H6zm-2 8h16v9H4v-9zm4-3.5l-1.5 2m12-2l1.5 2" fill="none" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  ),
+                },
+                {
+                  name: "iOS",
+                  icon: (
+                    <svg className="svg-icon w-12 h-12" viewBox="0 0 24 24">
+                      <path d="M18.71 4.29a10 10 0 0 0-14 14 10 10 0 0 0 14-14zm-6.5 3.5v9m-3-6h6" fill="none" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  ),
+                },
+                {
+                  name: "Web",
+                  icon: (
+                    <svg className="svg-icon w-12 h-12" viewBox="0 0 24 24">
+                      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2c4.41 0 8 3.59 8 8s-3.59 8-8 8-8-3.59-8-8 3.59-8 8-8zm-5 4h10M4 12h16m-7-4v8" fill="none" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  ),
+                },
+              ].map((platform, index) => (
+                <div key={index} className="flex flex-col items-center">
+                  {platform.icon}
+                  <p className="mt-2 text-lg font-semibold">{platform.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Screenshots mit Lightbox
+    const Screenshots = () => {
+      const sectionRef = useRef(null);
+      const [selectedImage, setSelectedImage] = useState(null);
+
+      const screenshotPaths = [
+        "screenshots/l.png",
+        "screenshots/a.png",
+        "screenshots/b.png",
+        "screenshots/c.png",
+        "screenshots/d.png",
+        "screenshots/e.png",
+        "screenshots/f.png",
+        "screenshots/g.png",
+        "screenshots/h.png",
+        "screenshots/i.png",
+        "screenshots/j.png",
+          
+      ];
+
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 50,
+          duration: 1,
+          stagger: 0.2,
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 80%",
+            ease: "power2.out",
+          },
+        });
+      }, []);
+
+      const openModal = (index) => {
+        setSelectedImage(index);
+      };
+
+      const closeModal = () => {
+        setSelectedImage(null);
+      };
+
+      const nextImage = () => {
+        setSelectedImage((prev) => (prev + 1) % screenshotPaths.length);
+      };
+
+      const prevImage = () => {
+        setSelectedImage((prev) => (prev - 1 + screenshotPaths.length) % screenshotPaths.length);
+      };
+
+      return (
+        <section ref={sectionRef} className="py-16 px-4 md:px-16 bg-gray-900">
+          <div className="max-w-6xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold text-center">Screenshots der App</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {screenshotPaths.map((path, index) => (
+                <div
+                  key={index}
+                  className="screenshot-placeholder mockup relative h-96 bg-gray-600 rounded-xl overflow-hidden shadow-lg"
+                  onClick={() => openModal(index)}
+                >
+                  <img
+                    src={path}
+                    alt={`Screenshot ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+            {selectedImage !== null && (
+              <div className="modal" onClick={closeModal}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <img
+                    src={screenshotPaths[selectedImage]}
+                    alt={`Screenshot ${selectedImage + 1}`}
+                  />
+                  <div className="modal-nav prev" onClick={(e) => { e.stopPropagation(); prevImage(); }}>&larr;</div>
+                  <div className="modal-nav next" onClick={(e) => { e.stopPropagation(); nextImage(); }}>&rarr;</div>
+                  <div className="modal-close" onClick={closeModal}>&times;</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    };
+
+    // Projektbeschreibung
+    const Overview = () => {
+      const sectionRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 100,
+          duration: 1,
+          stagger: 0.3,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", ease: "power2.out" },
+        });
+      }, []);
+      return (
+        <section ref={sectionRef} className="py-16 px-4 md:px-16 bg-gray-800">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold mb-6">Überblick</h2>
+            <div className="section-card bg-gray-700 p-8 rounded-xl shadow-lg">
+              <p className="text-lg">
+                Diese Full-Stack-Webanwendung erleichtert Privatpersonen und Selbstständigen die digitale Verwaltung von Steuererklärungen. Benutzer können Belege hochladen, Steuererklärungen erstellen, Zahlungen über Stripe abwickeln und Daten im Elster-Format an das Finanzamt übermitteln. Die integrierte automatische Texterkennung (OCR) extrahiert Metadaten wie Datum, Betrag und Kategorie aus hochgeladenen Belegen, um den Prozess zu optimieren.
+              </p>
+              <p className="text-lg mt-4">
+                Die Anwendung kombiniert Benutzerfreundlichkeit, Sicherheit und Skalierbarkeit, mit Fokus auf DSGVO-Compliance und zukünftige KI-Integration für steuerliche Optimierungsvorschläge.
+              </p>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Kernfunktionen
+    const Features = () => {
+      const sectionRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 100,
+          duration: 1,
+          stagger: 0.3,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", ease: "power2.out" },
+        });
+      }, []);
+      return (
+        <section ref={sectionRef} className="py-16 px-4 md:px-16 bg-gray-900">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold mb-6">Kernfunktionen</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  title: "Belegmanagement mit OCR",
+                  desc: "Hochladen von Belegen (JPG, PNG, HEIC; max. 5 MB) mit automatischer Texterkennung für Metadaten wie Datum, Betrag und Kategorie. Belege können manuell oder automatisch Steuererklärungen zugeordnet werden.",
+                  icon: "M12 4v16m8-8H4",
+                },
+                {
+                  title: "Steuererklärungsmanagement",
+                  desc: "Erstellung und Validierung von Steuererklärungen für beliebige Veranlagungsjahre. Übermittlung im Elster-Format über ERIC-Client mit Statusverfolgung.",
+                  icon: "M3 3h18v18H3z",
+                },
+                {
+                  title: "Sichere Zahlungen",
+                  desc: "Zahlungsabwicklung über Stripe (SEPA-Lastschrift) mit Webhook-Unterstützung für Echtzeit-Updates und Statusabfrage.",
+                  icon: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z",
+                },
+                {
+                  title: "Benutzerverwaltung",
+                  desc: "Sichere Registrierung und Anmeldung mit JWT und bcrypt. Schutz vor SQL-Injection und XSS-Angriffen.",
+                  icon: "M12 2L2 22h20L12 2z",
+                },
+              ].map((feature, index) => (
+                <div key={index} className="section-card bg-gray-700 p-6 rounded-xl shadow-lg flex items-start space-x-4">
+                  <svg className="svg-icon w-10 h-10" viewBox="0 0 24 24">
+                    <path d={feature.icon} />
+                  </svg>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                    <p className="text-gray-300">{feature.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Technologien
+    const Technologies = () => {
+      const sectionRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 100,
+          duration: 1,
+          stagger: 0.3,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", ease: "power2.out" },
+        });
+      }, []);
+      return (
+        <section ref={sectionRef} className="py-16 px-4 md:px-16 bg-gray-800">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold mb-6">Technologien</h2>
+            <div className="section-card bg-gray-700 p-8 rounded-xl shadow-lg">
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-disc pl-6">
+                <li><strong>React</strong>: Dynamische, reaktive Benutzeroberfläche</li>
+                <li><strong>Node.js/Express.js</strong>: REST-API für Backend-Logik</li>
+                <li><strong>PostgreSQL/Sequelize</strong>: Robuste Datenbankverwaltung</li>
+                <li><strong>Multer</strong>: Effizientes Datei-Upload-Management</li>
+                <li><strong>Stripe</strong>: Sichere SEPA-Zahlungen mit Webhooks</li>
+                <li><strong>ERIC-Client</strong>: Nahtlose Elster-Integration</li>
+                <li><strong>Tesseract.js</strong>: OCR für automatische Beleganalyse</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Herausforderungen und Lösungen
+    const Challenges = () => {
+      const sectionRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 100,
+          duration: 1,
+          stagger: 0.3,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", ease: "power2.out" },
+        });
+      }, []);
+      return (
+        <section ref={sectionRef} className="py-16 px-4 md:px-16 bg-gray-900">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold mb-6">Herausforderungen und Lösungen</h2>
+            <div className="section-card bg-gray-700 p-8 rounded-xl shadow-lg">
+              <ul className="space-y-4">
+                <li>
+                  <strong>Elster-Integration</strong>: Die komplexe XML-Struktur und ERIC-Client-Konfiguration wurde durch strukturierte XML-Generierung und Testzertifikate gelöst.
+                </li>
+                <li>
+                  <strong>Sicherheit</strong>: Sensible Daten werden durch HTTPS, JWT-Authentifizierung, bcrypt-Hashing und DSGVO-konforme Prozesse geschützt.
+                </li>
+                <li>
+                  <strong>OCR-Performance</strong>: Hohe Genauigkeit der Texterkennung durch Optimierung von Tesseract.js und Vorverarbeitung der Belegbilder.
+                </li>
+                <li>
+                  <strong>Skalierbarkeit</strong>: Effiziente Datenbankindizes und Load-Balancing-Techniken sichern Performance bei wachsender Nutzerzahl.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Status und Links
+    const StatusLinks = () => {
+      const sectionRef = useRef(null);
+      const mockupRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 100,
+          duration: 1,
+          stagger: 0.3,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", ease: "power2.out" },
+        });
+        gsap.to(mockupRef.current, {
+          y: -20,
+          repeat: -1,
+          yoyo: true,
+          duration: 2,
+          ease: "sine.inOut",
+        });
+      }, []);
+      return (
+        <section ref={sectionRef} className="py-16 px-4 md:px-16 bg-gray-800">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold mb-6">Status und Links</h2>
+            <div className="section-card bg-gray-700 p-8 rounded-xl shadow-lg">
+              <p className="text-lg mb-4">
+                <strong>Status</strong>: In Entwicklung. Implementierte Features umfassen Benutzerauthentifizierung, Belegmanagement mit OCR, Steuererklärungs-CRUD-Operationen, Zahlungsabwicklung und Elster-Übermittlung.
+              </p>
+              <p className="text-lg">
+            
+              </p>
+              <div ref={mockupRef} className="mockup mt-8 h-64 w-full max-w-md bg-gray-600 rounded-lg flex items-center justify-center">
+                <svg className="w-32 h-32 text-blue-400" viewBox="0 0 24 24">
+                  <path d="M3 3h18v18h-18z" fill="none" stroke="currentColor" strokeWidth="2" />
+                  <path d="M3 9h18M9 3v18" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Zukunftsperspektiven
+    const Future = () => {
+      const sectionRef = useRef(null);
+      useEffect(() => {
+        gsap.from(sectionRef.current.children, {
+          opacity: 0,
+          y: 100,
+          duration: 1,
+          stagger: 0.3,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", ease: "power2.out" },
+        });
+      }, []);
+      return (
+        <section ref={sectionRef} className="py-16 px-4 md:px-16 bg-gray-900">
+          <div className="max-w-5xl mx-auto space-y-8">
+            <h2 className="text-3xl font-bold mb-6">Zukunftsperspektiven</h2>
+            <div className="section-card bg-gray-700 p-8 rounded-xl shadow-lg">
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>KI-Analysen</strong>: Automatische Erkennung von Abzugsmöglichkeiten durch maschinelles Lernen.</li>
+                <li><strong>Mobile App</strong>: Native Apps für iOS und Android mit Belegfotografie.</li>
+                <li><strong>Mehrsprachigkeit</strong>: Unterstützung für Englisch und weitere Sprachen.</li>
+                <li><strong>Integrationen</strong>: Anbindung an Buchhaltungssoftware wie DATEV.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Haupt-App
+    const App = () => {
+      useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger);
+      }, []);
+      return (
+        <div className="bg-gray-900 text-white min-h-screen font-sans">
+          <NavBar />
+          <Header />
+          <Platforms />
+          <Screenshots />
+          <Overview />
+          <Features />
+          <Technologies />
+          <Challenges />
+          <StatusLinks />
+          <Future />
+          <footer className="py-8 text-center bg-gray-800">
+            <p>© 2025 Mutlu Arabul. Alle Rechte vorbehalten.</p>
+          </footer>
+        </div>
+      );
+    };
+
+    // App rendern
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>
